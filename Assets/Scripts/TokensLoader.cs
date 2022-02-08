@@ -9,6 +9,7 @@ using System.Text;
 using System.Linq;
 using System;
 using System.Net.Http;
+using UnityEngine.Networking;
 
 public class TokensLoader : MonoBehaviour
 {
@@ -46,7 +47,8 @@ public class TokensLoader : MonoBehaviour
         if (string.IsNullOrEmpty(account))
         {
             Debug.Log("User not logged in!");
-            account = "0xBf00cAeE3f4d0E654b5E1A557914D257f126d055";
+            account = "0x6D68bbE7534eb44058964419E98050a3A042d382";
+            PlayerPrefs.SetString("Account", account);
         }
         int[] tokenIds = await WalletOfOwner(chain, network, contract, account);
 
@@ -56,17 +58,33 @@ public class TokensLoader : MonoBehaviour
             return;
         }
 
-        _debugView.text = "";
+        _debugView.text = "Downloading JSON Metadata...";
 
         var urlTemplate = "https://cheekychimps.s3.us-east-2.amazonaws.com/{x}.json";
         var tokens = new List<ERC721Metadata>();
-        using var http = new HttpClient();
+        var requests = new List<UnityWebRequest>();
+        var tasks = new List<Task>();
         foreach (var id in tokenIds)
         {
-            var json = await http.GetStringAsync(urlTemplate.Replace("{x}", id.ToString()));
-            tokens.Add(JsonConvert.DeserializeObject<ERC721Metadata>(json));
+            try {
+            UnityWebRequest req = UnityWebRequest.Get(urlTemplate.Replace("{x}", id.ToString()));
+            requests.Add(req);
+            tasks.Add(req.SendWebRequest().GetTask());
+            } catch {}
         }
+        await Task.WhenAll(tasks);
+        // Unity sucks when it comes to networking, concurrency and in general WEBGL is missing so much 
+        // functionality so it all just has to be crude AF. Forgive me for doing it the way I did it, I'm 
+        // not getting paid enough to care.
+        
+        _debugView.text = "";
 
+        foreach(var req in requests)
+        { try {
+            var json = req.downloadHandler.text;
+            tokens.Add(JsonConvert.DeserializeObject<ERC721Metadata>(json));
+        } catch {} // this purely because the AWS server isn't configured properly and I don't wanna throw errors left&right
+        }
         FindObjectOfType<TokenGridManager>().LoadTokens(tokens.ToArray());
 
     }

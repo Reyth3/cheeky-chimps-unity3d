@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/SampleScene.unity
     guid: 2cda990e2423bbf4892e6590ba056729
   - enabled: 1
-    path: Assets/Scenes/TokensView.unity
+    path: Assets/Scenes/Staking.unity
     guid: 85048cee3b8890546bfb0829e68654a7
+  - enabled: 1
+    path: Assets/Scenes/Unstaking.unity
+    guid: 44bd09ce9da8e2948b9df2ce36c9ac93
   m_configObjects: {}

@@ -4,24 +4,35 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class StakeManager : MonoBehaviour
 {
+    public enum StakingBehavior { Staking = 0, Unstaking = 1 }
+
+    public StakingBehavior behavior;
+
     public List<TokenDisplay> selectedTokens;
     Button button;
     TextMeshProUGUI _text;
-    string[] messages = new string[] {
+    string[] stakingMessages = new string[] {
         "Select Two NFTs",
         "Stake Selected NFTs",
         "Too Many NFTs Selected"
     };
 
-    void Start() {
+    string[] unstakingMessages = new string[] {
+        "Select your Stake",
+        "Confirm Unstake"
+    };
+
+    void Start()
+    {
         TokenDisplay.TokenChecked += TokenChecked;
         TokenDisplay.TokenUnchecked += TokenUnchecked;
 
         selectedTokens = new List<TokenDisplay>();
-        
+
         _text = GetComponentInChildren<TextMeshProUGUI>();
         button = GetComponent<Button>();
         UpdateUI();
@@ -30,7 +41,7 @@ public class StakeManager : MonoBehaviour
     void OnDestroy()
     {
         TokenDisplay.TokenChecked -= TokenChecked;
-        TokenDisplay.TokenUnchecked -= TokenUnchecked;        
+        TokenDisplay.TokenUnchecked -= TokenUnchecked;
     }
 
     private void TokenUnchecked(TokenDisplay obj)
@@ -47,19 +58,50 @@ public class StakeManager : MonoBehaviour
 
     void UpdateUI()
     {
-        if(selectedTokens.Count < 2)
+        if (behavior == StakingBehavior.Staking)
         {
-            _text.text = messages[0];
-            button.interactable = false;
-        }
-        else if (selectedTokens.Count == 2)
-        {
-            _text.text = messages[1];
-            button.interactable = true;
+
+            if (selectedTokens.Count < 2)
+            {
+                _text.text = stakingMessages[0];
+                button.interactable = false;
+            }
+            else if (selectedTokens.Count == 2)
+            {
+                _text.text = stakingMessages[1];
+                button.interactable = true;
+            }
+            else
+            {
+                _text.text = stakingMessages[2];
+                button.interactable = false;
+            }
         }
         else {
-            _text.text = messages[2];
-            button.interactable = false;
+            if (selectedTokens.Count < 1)
+            {
+                _text.text = unstakingMessages[0];
+                button.interactable = false;
+            }
+            else if (selectedTokens.Count == 2)
+            {
+                _text.text = unstakingMessages[1];
+                button.interactable = true;
+            }
         }
+    }
+
+    public void OnStakeTokensClick()
+    {
+        // TODO: Someone needs to connect it with the AWS server 
+        Debug.LogError("Staking implementation goes here.");
+    }
+
+    public void SwitchSceneButtonClick()
+    {
+        var currentState = (int)behavior;
+        var targetState = (StakingBehavior)(currentState == 0 ? 1 : 0);
+        StopAllCoroutines();
+        SceneManager.LoadScene(targetState.ToString(), LoadSceneMode.Single);
     }
 }

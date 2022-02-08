@@ -25,28 +25,27 @@ public class TokenDisplay : MonoBehaviour
     public void UpdateTokenMetadata(ERC721Metadata tokenMetadata)
     {
         loadedToken = tokenMetadata;
-        StartCoroutine("DownloadImage", loadedToken.Image);
+        StartCoroutine("LoadThumbnail");
     }
 
-    IEnumerator DownloadImage(string MediaUrl)
+    private IEnumerator LoadThumbnail()
     {
-        UnityWebRequest request = UnityWebRequestTexture.GetTexture(MediaUrl);
-        yield return new WaitForEndOfFrame();
-        _title.text = loadedToken.Name;
+        UnityWebRequest request = UnityWebRequestTexture.GetTexture(loadedToken.Image);
 
         yield return request.SendWebRequest();
         if(request.result != UnityWebRequest.Result.Success) 
             Debug.Log(request.error);
         else
         {
-            // ImageComponent.texture = ((DownloadHandlerTexture) request.downloadHandler).texture;
-
             Texture2D tex = ((DownloadHandlerTexture) request.downloadHandler).texture;
             Sprite sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(tex.width / 2, tex.height / 2));
             _thumbnail.overrideSprite = sprite;
         } 
     }
 
+    void FixedUpdate() {
+        _title.text = loadedToken?.Name ?? "HTTP Load Error";
+    }
     public void SetChecked(bool c)
     {
         isChecked = c;

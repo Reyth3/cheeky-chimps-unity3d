@@ -10,6 +10,7 @@ using System.Threading;
 using UnityEngine;
 using UnityAsyncAwaitUtil;
 using UnityEngine.Networking;
+using System.Threading.Tasks;
 
 // We could just add a generic GetAwaiter to YieldInstruction and CustomYieldInstruction
 // but instead we add specific methods to each derived class to allow for return values
@@ -54,6 +55,20 @@ public static class IEnumeratorAwaitExtensions
     public static SimpleCoroutineAwaiter<AsyncOperation> GetAwaiter(this AsyncOperation instruction)
     {
         return GetAwaiterReturnSelf(instruction);
+    }
+
+    // public static TaskAwaiter GetAwaiter(this AsyncOperation asyncOp)
+    // {
+    //     var tcs = new TaskCompletionSource<object>();
+    //     asyncOp.completed += obj => { tcs.SetResult(null); };
+    //     return ((Task)tcs.Task).GetAwaiter();
+    // }
+
+    public static Task GetTask(this AsyncOperation asyncOp)
+    {
+        var tcs = new TaskCompletionSource<object>();
+        asyncOp.completed += obj => { tcs.SetResult(null); };
+        return ((Task)tcs.Task);
     }
 
     public static SimpleCoroutineAwaiter<UnityEngine.Object> GetAwaiter(this ResourceRequest instruction)
